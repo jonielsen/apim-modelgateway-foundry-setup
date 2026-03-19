@@ -150,3 +150,23 @@ az deployment group create \
 | Agent gets **DeploymentNotFound** | `deploymentInPath` is `false` | Set `"deploymentInPath": "true"` in parameters |
 | Agent sends wrong api-version | `inferenceAPIVersion` left empty | Set to the api-version your deployment supports (e.g. `2025-04-01-preview`) |
 | APIM can't acquire Entra token | `SystemAssigned` identity not enabled when APIM was created | Redeploy `apim-provision.bicep` with `identity: { type: 'SystemAssigned' }` added — it's a fast incremental update |
+
+---
+
+## How It Works
+
+### Setup (one-time)
+
+1. **APIM provisioned** with `StandardV2` and a system-assigned managed identity — the identity is what allows APIM to call Azure OpenAI without exposing credentials
+2. **RBAC role assigned** — grants APIM's identity `Cognitive Services OpenAI User` on the AI Services account
+3. **Azure OpenAI API imported** into APIM at path `/openai`, with a policy that auto-acquires an Entra token on every request
+4. **Foundry connection created** — tells Foundry "use this APIM instance + API for model calls"
+
+### Runtime (every agent request)
+
+1. The Foundry agent looks up the connection to find the APIM endpoint and subscription key
+2. It sends a request to APIM using `Ocp-Apim-Subscription-Key` for its own auth
+3. APIM's inbound policy swaps that out — it calls the Entra token endpoint, gets a Bearer token, and forwards the request to Azure OpenAI with `Authorization: Bearer <token>`
+4. Azure OpenAI validates the token via RBAC and returns the response back through APIM to the agent
+
+> **Key insight**: There are two separate auth layers — the Foundry→APIM leg uses a subscription key, and the APIM→Azure OpenAI leg uses managed identity. The Foundry project never has direct access to the Azure OpenAI endpoint.
