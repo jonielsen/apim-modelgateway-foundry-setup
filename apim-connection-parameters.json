@@ -1,0 +1,50 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "projectResourceId": {
+      "value": "/subscriptions/60de9c4c-5910-46f2-83b8-66bc5f716436/resourceGroups/rg-agentinfra/providers/Microsoft.CognitiveServices/accounts/my-foundry-project-jn-resource/projects/my-foundry-project-jn"
+    },
+    "apimResourceId": {
+      "value": "/subscriptions/60de9c4c-5910-46f2-83b8-66bc5f716436/resourceGroups/rg-agentinfra/providers/Microsoft.ApiManagement/service/apim-modelgateway-jn"
+    },
+    "apiName": {
+      "value": "azure-openai"
+    },
+    "connectionName": {
+      "value": "apim-modelgateway-jn-connection"
+    },
+    "authType": {
+      "_comment": "ApiKey uses APIM subscription key; use ProjectManagedIdentity to skip keys",
+      "value": "ApiKey"
+    },
+    "isSharedToAll": {
+      "value": false
+    },
+    "deploymentInPath": {
+      "_comment": "true because Azure OpenAI uses /deployments/{name}/chat/completions",
+      "value": "true"
+    },
+    "inferenceAPIVersion": {
+      "_comment": "Foundry appends ?api-version=... to all requests sent to APIM; APIM forwards it to the backend",
+      "value": "2025-04-01-preview"
+    },
+    "deploymentAPIVersion": {
+      "value": ""
+    },
+    "staticModels": {
+      "value": [
+        {
+          "name": "gpt-4.1",
+          "properties": {
+            "model": {
+              "name": "gpt-4.1",
+              "version": "2025-04-14",
+              "format": "OpenAI"
+            }
+          }
+        }
+      ]
+    }
+  }
+}
